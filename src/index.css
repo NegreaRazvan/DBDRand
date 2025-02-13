@@ -5,10 +5,12 @@
 
 @theme{
     --color-primary: #282323;
+
+    --color-background: #808080;
+
+    --background-image-random-hand: url("/random.png");
 }
 
-/*@layer base {*/
-/*    body {*/
-/*        background: #282323;*/
-/*    }*/
-/*}*/
+@utility text-gradient {
+    @apply bg-linear-to-t from-[#0c142c] to-[#7788a6] bg-clip-text text-transparent;
+}

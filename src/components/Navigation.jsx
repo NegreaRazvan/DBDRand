@@ -1,8 +1,12 @@
 import React from 'react'
 
-const Navigation = ({openHamburger}) => {
+const Navigation = () => {
     return (
-        <img className="size-12 mt-2 mr-2" src={"./hamburger.png"} alt="Hamburger Icon" />
+            <div className="gap-6 text-white text-1xl flex flex-row items-center justify-center">
+                <p>RANDOMIZER</p>
+                <p>MAKE YOUR BUILD</p>
+                <p>COMMUNITY BUILDS</p>
+            </div>
     )
 }
 export default Navigation
