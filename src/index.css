@@ -6,6 +6,8 @@
 @theme{
     --color-primary: #282323;
 
+    --color-secondary: #b2abab;
+
     --color-background: #808080;
 
     --background-image-random-hand: url("/random.png");
