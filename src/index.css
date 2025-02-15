@@ -13,6 +13,13 @@
     --background-image-random-hand: url("/random.png");
 }
 
+@layer base{
+    body{
+        background-color: #282323;
+    }
+
+}
+
 @utility text-gradient {
     @apply bg-linear-to-t from-[#0c142c] to-[#7788a6] bg-clip-text text-transparent;
 }
