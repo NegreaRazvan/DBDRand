@@ -24,16 +24,6 @@
 
 }
 
-@layer components{
-    .show{
-        @apply opacity-100 blur-none translate-x-0 transition-all duration-1000;
-    }
-
-    .hidden{
-        @apply opacity-0 blur-[5px] -translate-x-full transition-all duration-1000;
-    }
-}
-
 @utility text-gradient {
     @apply bg-linear-to-t from-[#0c142c] to-[#7788a6] bg-clip-text text-transparent;
 }
