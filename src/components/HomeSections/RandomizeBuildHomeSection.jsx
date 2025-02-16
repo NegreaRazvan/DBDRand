@@ -1,10 +1,10 @@
 import React from 'react'
 import {useNavigate} from "react-router-dom";
 
-const RandomizeBuildHomeSection = () => {
+const RandomizeBuildHomeSection = ({isVisible}) => {
     const navigate = useNavigate();
     return (
-        <div className="relative mt-[80px] w-full h-[600px] ">
+        <div className={`relative mt-[80px] w-full h-[600px] ${isVisible ? 'opacity-100 blur-0 translate-x-0 transition-all duration-1000' : 'opacity-0 blur-[5px] -translate-x-full transition-all duration-1000'}`}>
             <div className="absolute inset-0 bg-random-hand bg-cover bg-center opacity-50 "></div>
             <div className="relative text-center flex flex-col text-white ">
                 <h1 className="text-6xl mt-[75px] font-bold tracking-tight leading-[48px]">Randomize your build</h1>

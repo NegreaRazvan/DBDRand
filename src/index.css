@@ -14,10 +14,24 @@
 }
 
 @layer base{
+    main{
+        font-family: Georgia, serif;
+    }
+
     body{
         background-color: #282323;
     }
 
+}
+
+@layer components{
+    .show{
+        @apply opacity-100 blur-none translate-x-0 transition-all duration-1000;
+    }
+
+    .hidden{
+        @apply opacity-0 blur-[5px] -translate-x-full transition-all duration-1000;
+    }
 }
 
 @utility text-gradient {

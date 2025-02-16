@@ -1,9 +1,9 @@
 import React from 'react'
 import CommunityCard from "./CommunityCard.jsx";
 
-const CommunityBuildsHomeSection = () => {
+const CommunityBuildsHomeSection = ({isVisible}) => {
     return (
-        <div className=" bg-secondary flex flex-col pt-5 pl-5 w-full  gap-30 sm:h-[600px] h-[900px] ">
+        <div className={`bg-secondary flex flex-col pt-5 pl-5 w-full  gap-30 sm:h-[600px] h-[900px] ${isVisible ? 'opacity-100 blur-0 translate-x-0 transition-all duration-1000' : 'opacity-0 blur-[5px] -translate-x-full transition-all duration-1000'}`}>
             <h2 className="sm:mt-[20px] mt-[80px] mx-auto font-extrabold text-center text-6xl w-[600px] tracking-tight leading-[48px]">Check out community made builds</h2>
             <div className="flex flex-col sm:flex-row gap-15 sm:gap-0 sm:justify-around w-full items-center">
                 <CommunityCard text={"Explore unique Dead by Daylight builds created by the community! From fun meme setups to competitive strategies, find builds for both killers and survivors tailored to different playstyles."} />

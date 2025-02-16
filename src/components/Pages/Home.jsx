@@ -1,19 +1,53 @@
-import React from 'react'
+import {useEffect, useRef, useState} from 'react'
 import RandomizeBuildHomeSection from "../HomeSections/RandomizeBuildHomeSection.jsx";
 import MakeYourBuildHomeSection from "../HomeSections/MakeYourBuildHomeSection.jsx";
 import CommunityBuildsHomeSection from "../HomeSections/CommunityBuildsHomeSection.jsx";
-import {motion} from "framer-motion";
 
 const Home = () => {
+    const [isVisible, setIsVisible] = useState({});
+    const sectionRef=useRef([]);
+
+    const addToRefs = (el) => {
+        if (el && !sectionRef.current.includes(el)) {
+            sectionRef.current.push(el);
+        }
+    };
+
+
+    useEffect(() => {
+        const observer= new IntersectionObserver((entries) => {
+            console.log(entries);
+            entries.forEach(entry => {
+                const id= entry.target.id;
+                setIsVisible((prev) => ({
+                    ...prev,
+                    [id]: entry.isIntersecting,
+                }));
+                if(entry.isIntersecting)
+                    observer.unobserve(entry.target);
+
+            })
+        }, {threshold: 0.2})
+
+        sectionRef.current.forEach(el => {
+            observer.observe(el);
+        })
+
+        return () => observer.disconnect();
+    }, []);
+
     return (
-        <motion.div initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    viewport={{ once: true }}>
-            <RandomizeBuildHomeSection/>
-            <MakeYourBuildHomeSection/>
-            <CommunityBuildsHomeSection/>
-        </motion.div>
+        <div >
+            <div id="randomize" ref={addToRefs}>
+                <RandomizeBuildHomeSection isVisible={isVisible["randomize"]} />
+            </div>
+            <div id="build" ref={addToRefs}>
+                <MakeYourBuildHomeSection isVisible={isVisible["build"]}/>
+            </div>
+            <div id="community" ref={addToRefs}>
+                <CommunityBuildsHomeSection isVisible={isVisible["community"]}/>
+            </div>
+        </div>
     )
 }
 export default Home

@@ -1,6 +1,6 @@
 import React from 'react'
-import Logo from "./Logo.jsx";
-import Navigation from "./Navigation.jsx";
+import Logo from "./Navigation/Logo.jsx";
+import Navigation from "./Navigation/Navigation.jsx";
 import {Outlet} from "react-router-dom";
 
 const Layout = () => {
