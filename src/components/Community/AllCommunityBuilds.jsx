@@ -38,16 +38,15 @@ const AllCommunityBuilds = () => {
 
 
 
-    const fetchBuilds = async (page, role) => {
+    const fetchBuilds = async (page, role, killerSelected) => {
         setLoadingBuilds(true);
         try{
+            console.log(killerSelected)
+            const builds = await getPaginatedBuilds(page, role, killerSelected);
 
-            const builds = await getPaginatedBuilds(page)
-            const roleBuilds = builds.filter((item) => (
-                item.role === role
-            ))
-            setBuilds(roleBuilds);
-            const count = await getCountBuilds()
+            setBuilds(builds);
+
+            const count = await getCountBuilds(role, killerSelected);
             setCountBuilds(Math.ceil(count/15));
         }catch(error){
             console.log(error)
@@ -95,8 +94,8 @@ const AllCommunityBuilds = () => {
     },[])
 
     useEffect(() => {
-        fetchBuilds(page, role)
-    }, [page, role])
+        fetchBuilds(page, role, killerSelected);
+    }, [page, role, killerSelected])
 
 
     return (
@@ -111,8 +110,11 @@ const AllCommunityBuilds = () => {
                 {loadingKillers ? (
                     <Spinner />
                     ) : role === "killer" && (
-                    <select className='cursor-pointer p-2 w-[150px]' onChange={(e) => setKillerSelected(e.target.value)}>
-                        <option className="text-gray-800" key='0' value="All killers">All killers</option>
+                    <select className='cursor-pointer p-2 w-[150px]' onChange={(e) => {
+                        console.log(e.target.value)
+                        setKillerSelected(e.target.value)
+                    }}>
+                        <option className="text-gray-800" key='0' value="">All killers</option>
                         {killersComboBox.map((option, index) => (
                             <option className="text-gray-800" key={index} value={option.name}>
                                 {option.name}

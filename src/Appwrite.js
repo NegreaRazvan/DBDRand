@@ -10,24 +10,37 @@ const client = new Client()
 
 const database = new Databases(client);
 
-export const getPaginatedBuilds = async (pageNumber) => {
+export const getPaginatedBuilds = async (pageNumber, role , killerSelected) => {
     try{
-        const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+        console.log(killerSelected)
+        const queries = [
             Query.limit(15),
             Query.offset((pageNumber - 1) * 15),
-            Query.orderDesc("date_created")
-        ])
+            Query.orderDesc("date_created"),
+            Query.equal('role', role),
+        ]
+
+
+        if(killerSelected)
+            queries.push(Query.equal('character_name', killerSelected))
+
+        const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, queries);
         return result.documents;
     } catch (error) {
         console.log(error)
     }
 }
 
-export const getCountBuilds = async () => {
+export const getCountBuilds = async (role, killerSelected) => {
     try{
-        const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-            Query.limit(1)
-        ])
+        const queries = [
+            Query.limit(1),
+            Query.equal('role', role)
+        ]
+        if(killerSelected)
+            queries.push(Query.equal('character_name', killerSelected))
+
+        const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, queries);
         return result.total;
     } catch (error) {
         console.log(error)
