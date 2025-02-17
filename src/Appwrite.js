@@ -8,16 +8,27 @@ const client = new Client()
     .setEndpoint('https://cloud.appwrite.io/v1')
     .setProject(PROJECT_ID);
 
-const database = new Databases(DATABASE_ID);
+const database = new Databases(client);
 
 export const getPaginatedBuilds = async (pageNumber) => {
     try{
         const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
             Query.limit(15),
-            Query.offset((pageNumber - 1) * 10),
+            Query.offset((pageNumber - 1) * 15),
             Query.orderDesc("date_created")
         ])
         return result.documents;
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const getCountBuilds = async () => {
+    try{
+        const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+            Query.limit(1)
+        ])
+        return result.total;
     } catch (error) {
         console.log(error)
     }

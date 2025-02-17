@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react'
-import {getPaginatedBuilds} from "../../Appwrite.js";
+import {getCountBuilds, getPaginatedBuilds} from "../../Appwrite.js";
 import Search from "./Search.jsx";
 import Spinner from "../Spinner.jsx";
+import BuildCard from "./BuildCard.jsx";
 
 
 
@@ -19,7 +20,7 @@ const AllCommunityBuilds = () => {
 
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
-    const [role, setRole] = useState("Killer");
+    const [role, setRole] = useState("killer");
 
     const [builds, setBuilds] = useState([]);
 
@@ -33,11 +34,21 @@ const AllCommunityBuilds = () => {
 
     const [loadingKillers, setLoadingKillers] = useState(false);
 
-    const fetchBuilds = async () => {
+    const [countBuilds, setCountBuilds] = useState(0);
+
+
+
+    const fetchBuilds = async (page, role) => {
         setLoadingBuilds(true);
         try{
+
             const builds = await getPaginatedBuilds(page)
-            setBuilds(builds)
+            const roleBuilds = builds.filter((item) => (
+                item.role === role
+            ))
+            setBuilds(roleBuilds);
+            const count = await getCountBuilds()
+            setCountBuilds(Math.ceil(count/15));
         }catch(error){
             console.log(error)
         } finally {
@@ -81,26 +92,26 @@ const AllCommunityBuilds = () => {
 
     useEffect(() => {
         fetchKillers();
-        console.log(killersComboBox);
     },[])
 
     useEffect(() => {
-        fetchBuilds()
-    }, [])
+        fetchBuilds(page, role)
+    }, [page, role])
+
 
     return (
         <section className=" mt-[80px] text-white">
             <div className="pb-5 flex flex-row items-center justify-between ">
-                <h2 className=" text-3xl">{role === "Killer" ? "Killer" : "Survivor"} Builds</h2>
-                <img className='cursor-pointer size-20' onClick={() => {setRole(role === "Killer" ? "Survivor" : "Killer")}} src={role === "Killer" ? './killerIcon.png' : 'survivorIcon.png'} alt="Role Image" />
+                <h2 className=" text-3xl">{role === "killer" ? "Killer" : "Survivor"} Builds</h2>
+                <img className='cursor-pointer size-20' onClick={() => {setRole(role === "killer" ? "survivor" : "killer")}} src={role === "killer" ? './killerIcon.png' : 'survivorIcon.png'} alt="Role Image" />
             </div>
             <div className="w-full h-[5px] bg-gray-400"/>
             <div className="pb-5 pt-5 flex flex-row items-center justify-between ">
                 <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                 {loadingKillers ? (
                     <Spinner />
-                    ) : role === "Killer" && (
-                    <select className='p-2 w-[150px]' onChange={(e) => setKillerSelected(e.target.value)}>
+                    ) : role === "killer" && (
+                    <select className='cursor-pointer p-2 w-[150px]' onChange={(e) => setKillerSelected(e.target.value)}>
                         <option className="text-gray-800" key='0' value="All killers">All killers</option>
                         {killersComboBox.map((option, index) => (
                             <option className="text-gray-800" key={index} value={option.name}>
@@ -110,6 +121,29 @@ const AllCommunityBuilds = () => {
                     </select>
                     )
                 }
+
+            </div>
+            {builds.length > 0 && (
+                    <ul className='flex flex-col gap-2'>
+                        {builds.map((build, index) => (
+                            <BuildCard key={index} build={build} />
+                        ))}
+                    </ul>
+            )}
+            <div className='flex justify-between mt-4'>
+                <div></div>
+                <div className='flex flex-row gap-2'>
+                    <p>{page} / {countBuilds}</p>
+                    {countBuilds>page &&
+                        <button onClick={() => {setPage(prevState => prevState-1)}} className='cursor-pointer hover:bg-gray-400'>&larr;</button>
+                    }
+
+                    {page === 1 && countBuilds>page &&
+                        <button onClick={() => {setPage(prevState => prevState+1)}} className='cursor-pointer hover:bg-gray-400'>&rarr;</button>
+                    }
+
+
+                </div>
             </div>
         </section>
     )
