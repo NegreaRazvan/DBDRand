@@ -1,4 +1,6 @@
 import React, {useEffect, useState} from 'react'
+import RandomizerCard from "./RandomizerCard.jsx";
+import Spinner from "../Spinner.jsx";
 
 
 const API_OPTIONS = {
@@ -8,10 +10,11 @@ const API_OPTIONS = {
     }
 };
 
-const URL_RANDOM_CHARACTER = '/api/api/randomcharacter'
-const URL_RANDOM_PERKS = '/api/api/randomperks'
-const URL_ITEMS = '/api/api/items'
-const URL_ADDONS = '/api/api/addons'
+const URL_RANDOM_CHARACTER = '/api/api/randomcharacter';
+const URL_RANDOM_PERKS = '/api/api/randomperks';
+const URL_ITEMS = '/api/api/items';
+const URL_ADDONS = '/api/api/addons';
+const URL_OFFERINGS = '/api/api/offerings';
 
 const RandomizerLayout = () => {
     const [role, setRole] = useState("killer");
@@ -24,7 +27,13 @@ const RandomizerLayout = () => {
 
     const [addOns, setAddOns] = useState([])
 
+    const [offering, setOffering] = useState([])
+
+    const [isDoneRandomizing, setIsDoneRandomizing] = useState(false)
+
+
     const fetchRandomCharacterAndItem = async (role) => {
+
         const endpointCharacter =  `${URL_RANDOM_CHARACTER}?role=${role}`
         const responseCharacter = await fetch(endpointCharacter, API_OPTIONS);
 
@@ -46,6 +55,8 @@ const RandomizerLayout = () => {
 
         const item = character[11];
 
+        let itemSearched;
+
         if( item !== null) {
             const endpointItems = `${URL_ITEMS}`
             const responseItems = await fetch(endpointItems, API_OPTIONS);
@@ -62,11 +73,10 @@ const RandomizerLayout = () => {
 
             const itemValue = Object.entries(dataItems);
 
-            const itemSearched = itemValue.filter(([key, element]) => (
+            itemSearched = itemValue.filter(([key, element]) => (
                 key === item
             ))
 
-            setRandomItem(itemSearched);
         } else{
             const endpointItems = `${URL_ITEMS}?role=${role}`
             const responseItems = await fetch(endpointItems, API_OPTIONS);
@@ -89,12 +99,14 @@ const RandomizerLayout = () => {
                 randomValue = itemValue[Math.floor(Math.random() * itemValue.length)]
             }
 
-            setRandomItem(randomValue);
-
+            itemSearched = randomValue
         }
+        console.log(itemSearched);
+        setRandomItem(itemSearched);
+        return itemSearched;
     }
 
-    const fetchRandomPerks = async () => {
+    const fetchRandomPerks = async (role) => {
         const endpointPerks =  `${URL_RANDOM_PERKS}?role=${role}`
         const responsePerks = await fetch(endpointPerks, API_OPTIONS);
 
@@ -116,80 +128,104 @@ const RandomizerLayout = () => {
     }
 
     const fetchRandomAddOns = async (role, item) => {
-        const endpointAddOn =  `${URL_ADDONS}?role=${role}`
-        const response = await fetch(endpointAddOn, API_OPTIONS);
+            const endpointAddOn = `${URL_ADDONS}?role=${role}`
+            const response = await fetch(endpointAddOn, API_OPTIONS);
 
-        if (!response.ok) {
-            throw new Error(response.statusText);
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+
+            const data = await response.json();
+
+
+            if (data.response === 'False') {
+                setAddOns([]);
+                return;
+            }
+
+            const addOns = Object.values(data);
+
+
+            const addOnsForAsset = role === 'survivor' ? Array.from(addOns.filter((element) => element.item_type === item.item_type)) :
+                Array.from(addOns.filter((element) => element.parents[0] === item[0][0]));
+
+            const indexAddOn1 = Math.floor(Math.random() * addOnsForAsset.length);
+            let indexAddOn2 = Math.floor(Math.random() * addOnsForAsset.length);
+            while (indexAddOn1 === indexAddOn2 && addOnsForAsset.length > 0) {
+                indexAddOn2 = Math.floor(Math.random() * addOnsForAsset.length);
+            }
+
+            const addOn1 = addOnsForAsset[indexAddOn1];
+            const addOn2 = addOnsForAsset[indexAddOn2];
+
+            const array= [addOn1, addOn2];
+
+
+            setAddOns(array);
+
+
+    }
+
+    const fetchRandomOffering = async (role) => {
+        const endpoint =  `${URL_OFFERINGS}?role=${role}`
+        const responsePerks = await fetch(endpoint, API_OPTIONS);
+
+        if (!responsePerks.ok) {
+            throw new Error(responsePerks.statusText);
         }
 
-        const data = await response.json();
+        const data = await responsePerks.json();
 
 
         if (data.response === 'False') {
-            setAddOns([]);
+            setRandomPerks([]);
             return;
         }
 
-        const addOns = Object.values(data);
-
-        var addOnsForItem;
-
-        if (role === 'survivor' && item.length > 0) {
-            console.log(item);
-            addOnsForItem = Array.from(addOns.filter((element) => element.item_type === item.item_type));
-
-            console.log(addOnsForItem);
-            var indexAddOn1 = Math.floor(Math.random() * addOnsForItem.length)
-            var indexAddOn2 = Math.floor(Math.random() * addOnsForItem.length)
-            while (indexAddOn1 === indexAddOn2 && addOnsForItem.length > 0) {
-                indexAddOn2 = Math.floor(Math.random() * addOnsForItem.length)
-            }
-            // var addOn1 = addOnsForItem[Math.floor(Math.random() * addOnsForItem.length)]
-            // var addOn2 = addOnsForItem[Math.floor(Math.random() * addOnsForItem.length)]
-            // while (addOn1 === addOn2)
-            //     addOn2 = addOnsForItem[Math.floor(Math.random() * addOnsForItem.length)]
-
-            console.log(indexAddOn1 + ' ' + indexAddOn2);
-        }
+        const offerings = Object.values(data)
+        const randomOffering = offerings[Math.floor(Math.random() * offerings.length)]
 
 
+        setOffering(randomOffering);
     }
 
     const fetchAssets = async (role) => {
         try{
-            ///1 random character and 1 item
-
-            await fetchRandomCharacterAndItem(role);
-
-            ///4 random perks
-
-            await fetchRandomPerks();
-
-            ///2 add ons
-
-
+            setIsDoneRandomizing(false)
+            const item = await fetchRandomCharacterAndItem(role);
+            if (item) {
+                await fetchRandomAddOns(role, item);
+            }
+            await fetchRandomPerks(role);
+            await fetchRandomOffering(role)
+            {role ==='survivor' ? console.log(randomItem[0]) : console.log('killer')}
         }catch(error){
             console.log(error)
+        } finally {
+            setIsDoneRandomizing(true)
         }
     }
 
 
     useEffect(() => {
-        fetchAssets(role);
+        const timer = setTimeout(() => {
+            fetchAssets(role);
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timer);
     }, [role]);
 
-    useEffect(() => {
-        fetchRandomAddOns(role, randomItem);
-    }, [randomItem]);
 
     return (
-        <section className=" mt-[80px] text-white">
+        <section className=" mt-[80px] text-white ">
             <div className="pb-5 flex flex-row items-center justify-between ">
                 <h2 className=" text-3xl">{role === "killer" ? "Killer" : "Survivor"} Builds</h2>
                 <img className='cursor-pointer size-20' onClick={() => {setRole(role === "killer" ? "survivor" : "killer")}} src={role === "killer" ? './killerIcon.png' : 'survivorIcon.png'} alt="Role Image" />
             </div>
-            <div className="w-full h-[5px] bg-gray-400"/>
+            <div className="w-full h-[5px] bg-gray-400 mb-6"/>
+            {/*{isDoneRandomizing ? <RandomizerCard item = {role === 'survivor' ? randomItem[0] : randomItem[0][1]} addOn1 = {addOns[0]} addOn2 = {addOns[1]} offering = {offering} /> :*/}
+            {/*    <Spinner/>*/}
+            {/*}*/}
         </section>
     )
 }
