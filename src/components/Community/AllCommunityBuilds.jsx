@@ -111,7 +111,6 @@ const AllCommunityBuilds = () => {
                     <Spinner />
                     ) : role === "killer" && (
                     <select className='cursor-pointer p-2 w-[150px]' onChange={(e) => {
-                        console.log(e.target.value)
                         setKillerSelected(e.target.value)
                     }}>
                         <option className="text-gray-800" key='0' value="">All killers</option>
