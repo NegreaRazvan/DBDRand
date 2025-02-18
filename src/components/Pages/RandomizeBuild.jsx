@@ -1,8 +1,9 @@
 import React from 'react'
+import RandomizerLayout from "../Randomizer/RandomizerLayout.jsx";
 
 const RandomizeBuild = () => {
     return (
-        <div>RandomizeBuild</div>
+        <RandomizerLayout/>
     )
 }
 export default RandomizeBuild
