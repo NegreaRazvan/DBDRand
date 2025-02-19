@@ -1,7 +1,12 @@
 import React, {useEffect, useState} from 'react'
 import RandomizerCard from "./RandomizerCard.jsx";
 import Spinner from "../Spinner.jsx";
+import AddOnInformationCard from "./AddOnInformationCard.jsx";
+import CharacterInformationCard from "./CharacterInformationCard.jsx";
+import PerkInformationCard from "./PerkInformationCard.jsx";
+import ItemInformationCard from "./ItemInformationCard.jsx";
 
+const cache = {};
 
 const API_OPTIONS = {
     method: 'GET',
@@ -31,96 +36,80 @@ const RandomizerLayout = () => {
 
     const [isDoneRandomizing, setIsDoneRandomizing] = useState(false)
 
+    const [retry, setRetry] = useState(false)
 
-    const fetchRandomCharacterAndItem = async (role) => {
+    const fetchWithCache = async (url) => {
+        // if the response is in cache -> return it
+        if (cache[url])
+            return cache[url];
 
-        const endpointCharacter =  `${URL_RANDOM_CHARACTER}?role=${role}`
-        const responseCharacter = await fetch(endpointCharacter, API_OPTIONS);
-
-        if (!responseCharacter.ok) {
-            throw new Error(responseCharacter.statusText);
+        // fetch from the endpoint
+        const response = await fetch(url, API_OPTIONS);
+        if (!response.ok) {
+            throw new Error(response.statusText);
         }
-
-        const data = await responseCharacter.json();
-
+        const data = await response.json();
 
         if (data.response === 'False') {
-            setRandomCharacter([]);
-            return;
+            throw new Error('Error fetching data');
         }
+
+        // save the response in the cache
+        if(!url.includes("random"))
+            cache[url] = data;
+        return data;
+    };
+
+    const fetchRandomCharacterAndItem = async (role) => {
+        /// get the random character, depending on the role
+        const data = await fetchWithCache( `${URL_RANDOM_CHARACTER}?role=${role}`)
 
         const character = Object.values(data);
 
+
         setRandomCharacter(character);
 
+        /// get the item type: it's null if it's a survivor, a power if it's a killer
         const item = character[11];
 
         let itemSearched;
 
+        const dataItems = await fetchWithCache( `${URL_ITEMS}?role=${role}`)
+
         if( item !== null) {
-            const endpointItems = `${URL_ITEMS}`
-            const responseItems = await fetch(endpointItems, API_OPTIONS);
-            if (!responseItems.ok) {
-                throw new Error(responseItems.statusText);
-            }
-
-            const dataItems = await responseItems.json();
-
-            if (dataItems.response === 'False') {
-                setRandomItem([]);
-                return;
-            }
 
             const itemValue = Object.entries(dataItems);
 
+            /// we get the properties of the power
             itemSearched = itemValue.filter(([key, element]) => (
                 key === item
             ))
 
+            itemSearched = itemSearched[0]
+
+            /// itemSearched for killer is going to be a map because we need the key part for when we filter the specific add ons
+
+
         } else{
-            const endpointItems = `${URL_ITEMS}?role=${role}`
-            const responseItems = await fetch(endpointItems, API_OPTIONS);
-            if (!responseItems.ok) {
-                throw new Error(responseItems.statusText);
+            const itemValue = Object.entries(dataItems);
+
+            /// random item out of the available ones
+            itemSearched = itemValue[Math.floor(Math.random() * itemValue.length)]
+
+            /// if the item is a killer specific item / event specific item, we don't want it
+            while(itemSearched[1].item_type === null) {
+                itemSearched = itemValue[Math.floor(Math.random() * itemValue.length)]
             }
 
-            const dataItems = await responseItems.json();
-
-            if (dataItems.response === 'False') {
-                setRandomItem([]);
-                return;
-            }
-
-            const itemValue = Object.values(dataItems);
-
-            var randomValue = itemValue[Math.floor(Math.random() * itemValue.length)]
-
-            while(randomValue.item_type === null) {
-                randomValue = itemValue[Math.floor(Math.random() * itemValue.length)]
-            }
-
-            itemSearched = randomValue
         }
-        console.log(itemSearched);
+
+        /// we will have a single map Object (key, element)
         setRandomItem(itemSearched);
         return itemSearched;
     }
 
     const fetchRandomPerks = async (role) => {
-        const endpointPerks =  `${URL_RANDOM_PERKS}?role=${role}`
-        const responsePerks = await fetch(endpointPerks, API_OPTIONS);
-
-        if (!responsePerks.ok) {
-            throw new Error(responsePerks.statusText);
-        }
-
-        const dataPerks = await responsePerks.json();
-
-
-        if (dataPerks.response === 'False') {
-            setRandomPerks([]);
-            return;
-        }
+        const dataPerks = await fetchWithCache( `${URL_RANDOM_PERKS}?role=${role}`)
 
         const dataArrayPerks = Object.values(dataPerks);
 
@@ -128,27 +117,13 @@ const RandomizerLayout = () => {
     }
 
     const fetchRandomAddOns = async (role, item) => {
-            const endpointAddOn = `${URL_ADDONS}?role=${role}`
-            const response = await fetch(endpointAddOn, API_OPTIONS);
-
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-
-            const data = await response.json();
-
-
-            if (data.response === 'False') {
-                setAddOns([]);
-                return;
-            }
+            const data = await fetchWithCache( `${URL_ADDONS}?role=${role}`)
 
             const addOns = Object.values(data);
 
 
-            const addOnsForAsset = role === 'survivor' ? Array.from(addOns.filter((element) => element.item_type === item.item_type)) :
-                Array.from(addOns.filter((element) => element.parents[0] === item[0][0]));
-
+            const addOnsForAsset = role === 'survivor' ? Array.from(addOns.filter((element) => element.item_type === item[1].item_type)) :
+                Array.from(addOns.filter((element) => (element.parents[0] === item[0])));
             const indexAddOn1 = Math.floor(Math.random() * addOnsForAsset.length);
             let indexAddOn2 = Math.floor(Math.random() * addOnsForAsset.length);
             while (indexAddOn1 === indexAddOn2 && addOnsForAsset.length > 0) {
@@ -160,31 +135,14 @@ const RandomizerLayout = () => {
 
             const array= [addOn1, addOn2];
 
-
             setAddOns(array);
-
-
     }
 
     const fetchRandomOffering = async (role) => {
-        const endpoint =  `${URL_OFFERINGS}?role=${role}`
-        const responsePerks = await fetch(endpoint, API_OPTIONS);
-
-        if (!responsePerks.ok) {
-            throw new Error(responsePerks.statusText);
-        }
-
-        const data = await responsePerks.json();
-
-
-        if (data.response === 'False') {
-            setRandomPerks([]);
-            return;
-        }
+        const data = await fetchWithCache( `${URL_OFFERINGS}?role=${role}`)
 
         const offerings = Object.values(data)
         const randomOffering = offerings[Math.floor(Math.random() * offerings.length)]
-
 
         setOffering(randomOffering);
     }
@@ -198,7 +156,6 @@ const RandomizerLayout = () => {
             }
             await fetchRandomPerks(role);
             await fetchRandomOffering(role)
-            {role ==='survivor' ? console.log(randomItem[0]) : console.log('killer')}
         }catch(error){
             console.log(error)
         } finally {
@@ -213,19 +170,39 @@ const RandomizerLayout = () => {
         }, 300); // 300ms debounce
 
         return () => clearTimeout(timer);
-    }, [role]);
+    }, [role, retry]);
 
 
     return (
-        <section className=" mt-[80px] text-white ">
+        <section className=" mt-[80px] text-white flex flex-col gap-4 min-w-[412px]">
             <div className="pb-5 flex flex-row items-center justify-between ">
                 <h2 className=" text-3xl">{role === "killer" ? "Killer" : "Survivor"} Builds</h2>
-                <img className='cursor-pointer size-20' onClick={() => {setRole(role === "killer" ? "survivor" : "killer")}} src={role === "killer" ? './killerIcon.png' : 'survivorIcon.png'} alt="Role Image" />
+                <div className="flex gap-4" >
+                    <img onClick={() => setRetry(previous => !previous)} className='cursor-pointer size-15' src={'./retry.png'} alt='Retry' />
+                    <img className='cursor-pointer size-20' onClick={() => {setRole(role === "killer" ? "survivor" : "killer")}} src={role === "killer" ? './killerIcon.png' : 'survivorIcon.png'} alt="Role Image" />
+                </div>
             </div>
-            <div className="w-full h-[5px] bg-gray-400 mb-6"/>
-            {/*{isDoneRandomizing ? <RandomizerCard item = {role === 'survivor' ? randomItem[0] : randomItem[0][1]} addOn1 = {addOns[0]} addOn2 = {addOns[1]} offering = {offering} /> :*/}
-            {/*    <Spinner/>*/}
-            {/*}*/}
+            <div className="w-full h-[5px] bg-gray-400 "/>
+            {isDoneRandomizing ? <RandomizerCard item = {role === 'survivor' ?  randomItem[1] : randomItem[1]} addOns={addOns} offering = {offering} perks={randomPerks} character={randomCharacter}/> :
+                <div className='flex justify-center'> <Spinner/></div>
+
+            }
+            <h3 className='text-2xl pt-8 text-white'>Build Info</h3>
+            {isDoneRandomizing ?
+                <>
+                    <CharacterInformationCard character={randomCharacter} />
+                    <ItemInformationCard item={randomItem[1]} />
+                    {addOns.map(addOn => (
+                        <AddOnInformationCard key={addOn.name} addOn={addOn}/>
+                    ))}
+                    {randomPerks.map(perk => (
+                        <PerkInformationCard key={perk.name} perk={perk}/>
+                    ))}
+                </>
+                :
+                <div className='flex justify-center'> <Spinner/></div>
+            }
+
         </section>
     )
 }
