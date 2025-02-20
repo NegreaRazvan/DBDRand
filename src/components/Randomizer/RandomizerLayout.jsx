@@ -6,7 +6,7 @@ import CharacterInformationCard from "./CharacterInformationCard.jsx";
 import PerkInformationCard from "./PerkInformationCard.jsx";
 import ItemInformationCard from "./ItemInformationCard.jsx";
 
-const cache = {};
+const cache={}
 
 const API_OPTIONS = {
     method: 'GET',
@@ -39,6 +39,8 @@ const RandomizerLayout = () => {
     const [retry, setRetry] = useState(false)
 
     const fetchWithCache = async (url) => {
+        // const cache = localStorage.getItem('UrlCache')
+
         // if the response is in cache -> return it
         if (cache[url])
             return cache[url];
@@ -55,8 +57,10 @@ const RandomizerLayout = () => {
         }
 
         // save the response in the cache
-        if(!url.includes("random"))
+        if(!url.includes("random")) {
             cache[url] = data;
+            // localStorage.setItem('UrlCache', cache);
+        }
         return data;
     };
 
