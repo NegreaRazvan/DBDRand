@@ -21,7 +21,7 @@ const API_OPTIONS = {
 const MakeYourBuildCard = ({role}) => {
     const [searchTerm, setSearchTerm] = useState("")
 
-    const [itemImage, setItemImage] = useState({image: './perkSelector.png', lockedInIn: false, selected: false});
+    const [itemImage, setItemImage] = useState({image: './perkSelector.png', lockedIn: false, selected: false});
     const [addOnsImages, setAddOnsImages] = useState([{image: './perkSelector.png', lockedIn: false, selected: false}, {image: './perkSelector.png', lockedIn: false, selected: false}]);
     const [offeringImage, setOfferingImage] = useState({image: './offeringSelector.png', lockedIn: false, selected: false});
     const [perksImages, setPerksImages] = useState([{image: './perkSelector.png', lockedIn: false, selected: false},{image: './perkSelector.png', lockedIn: false, selected: false},{image: './perkSelector.png', lockedIn: false, selected: false},{image: './perkSelector.png', lockedIn: false, selected: false}]);
@@ -34,6 +34,8 @@ const MakeYourBuildCard = ({role}) => {
     const [countPage, setCountPage] = useState(0);
 
     const [displayArray, setDisplayArray] = useState({array: [], isPerks: true});
+
+    const [selectedState, setSelectedState] = useState( 'itemImage' );
 
 
 
@@ -60,39 +62,98 @@ const MakeYourBuildCard = ({role}) => {
 
     const fetchAssets = async (role) => {
         setIsDoneCaching(false);
-        const data = await fetchWithCache(`${URL_PERKS}?role=${role}`);
-        console.log(Object.values(data).slice((page-1)*15,page*15))
-        setDisplayArray({array: Object.values(data).slice((page-1)*15,page*15), isPerks: true});
-
-        // fetchWithCache( `${URL_CHARACTERS}?role=${role}`)
-        // fetchWithCache( `${URL_ITEMS}?role=${role}`)
-        // fetchWithCache( `${URL_ADDONS}?role=${role}`)
-        // fetchWithCache( `${URL_OFFERINGS}?role=${role}`)
+        fetchWithCache(`${URL_PERKS}?role=${role}`);
+        fetchWithCache( `${URL_CHARACTERS}?role=${role}`)
+        fetchWithCache( `${URL_ITEMS}?role=${role}`)
+        fetchWithCache( `${URL_ADDONS}?role=${role}`)
+        fetchWithCache( `${URL_OFFERINGS}?role=${role}`)
         setIsDoneCaching(true);
+    }
+
+    const unlockState = (selectedState) => {
+        if(selectedState === 'itemImage')
+            setItemImage(prev => ({...prev, image: './perkSelector.png', lockedIn : false}))
+        if(selectedState === 'addOnsImages')
+            setAddOnsImages((prev)=>
+                prev.map(element =>
+                    ({...element, image : './perkSelector.png', lockedIn: false} )) )
+        if(selectedState === 'offeringImage')
+            setOfferingImage(prev => ({...prev, image: './offeringSelector.png', lockedIn : false}))
+        if(selectedState === 'perksImages'){
+            setPerksImages((prev)=>
+                prev.map(element =>
+                    ({...element, image : './perkSelector.png', lockedIn: false} )) )
+        }
+
+    }
+
+    const setArray = async () => {
+        let data;
+        if(selectedState === 'perksImages')
+            data = cache[`${URL_PERKS}?role=${role}`];
+        if(selectedState === 'addOnsImages')
+            data = cache[`${URL_ADDONS}?role=${role}`];
+        if(selectedState === 'offeringImage')
+            data = cache[`${URL_OFFERINGS}?role=${role}`];
+        if(selectedState === 'itemImage')
+            data = cache[`${URL_ITEMS}?role=${role}`];
+        setCountPage(Math.ceil(Object.entries(data).length/15));
+        console.log(Object.entries(data))
+        setDisplayArray({array: Object.values(data).slice((page - 1) * 15, page * 15), isPerks: selectedState === 'perksImages'})
+
     }
 
     useEffect(() => {
         fetchAssets(role);
-    }, [role, page]);
+    }, [role]);
+
+    useEffect(() => {
+        (isDoneCaching)
+        {
+            setPage(1);
+            setArray();
+        }
+    },[selectedState]);
+
+    useEffect(() => {
+        (isDoneCaching)
+        {
+            setArray();
+        }
+    },[page])
 
 
     return (
         <div className='grid grid-cols-[4fr_2fr] text-white text-center'>
             <div className='border-8 bg-gray-400 border-gray-700 flex justify-evenly items-center p-4'>
                 <div className='flex flex-row items-center justify-center gap-4'>
-                    <img className='size-25' onMouseOver={() => setItemImage((prev) => ({...prev, image : './perkSelectorHover.png'}))} onMouseOut={() =>  setItemImage((prev) => ({...prev, image : './perkSelector.png'}))} src={itemImage.image} alt='Perk Selector'/>
+                    <img className='size-25'
+                         onClick={() =>(
+                             unlockState(selectedState),
+                             setSelectedState('itemImage'),
+                             setItemImage(prev=>
+                                 ({...prev, lockedIn: true, image : './perkSelectorHover.png'})
+                             ))}
+                         onMouseOver={() =>  !itemImage.lockedIn && setItemImage((prev) => ({...prev, image : './perkSelectorHover.png'}))} onMouseOut={() => !itemImage.lockedIn &&  setItemImage((prev) => ({...prev, image : './perkSelector.png'}))} src={itemImage.image} alt='Perk Selector'/>
                     <img className='size-15 ' src={'./plus.png'} />
                     {addOnsImages.map((addOn, index) => (
                             <img key={index} className='size-20'
+                                 onClick={() =>(
+                                     unlockState(selectedState),
+                                     setSelectedState('addOnsImages'),
+                                     setAddOnsImages((prev)=>
+                                        prev.map((element, i) =>
+                                                 index === i ? { ...element, image : './perkSelectorHover.png', lockedIn: true} : element))
+                                 )}
                                  onMouseOver={() =>
                                      setAddOnsImages(prev =>
                                         prev.map((element, i) =>
-                                    i===index ? { ...element, image : './perkSelectorHover.png'} : element))
+                                    i===index && !element.lockedIn ? { ...element, image : './perkSelectorHover.png'} : element))
                                 }
                                  onMouseOut={() =>
                                      setAddOnsImages((prev) =>
                                          prev.map((element, i) =>
-                                             i===index ? { ...element, image : './perkSelector.png'} : element))
+                                             i===index && !element.lockedIn ? { ...element, image : './perkSelector.png'} : element))
                                  }
                                  src={addOn.image} alt='AddOn Slot'/>
                             )
@@ -101,7 +162,13 @@ const MakeYourBuildCard = ({role}) => {
                     {/*<img className='size-20' onMouseOver={() => setAddOnsImages((prev) => ({ prev[0].image : './perkSelectorHover.png'}))} onMouseOut={() =>  setAddOnsImages((prev) => ({...prev, image : './perkSelector.png'}))} src={addOnsImages[0].image} alt='AddOn Slot'/>*/}
                     {/*<img className='size-20' onMouseOver={() =>(setAddOn2Image('./perkSelectorHover.png'))} onMouseOut={() =>setAddOn2Image('./perkSelector.png')} src={addOnsImages[0].image} alt='AddOn Slot'/>*/}
                 </div>
-                <img className='size-25' onMouseOver={() => setOfferingImage((prev) => ({...prev, image : './offeringSelectorHover.png'}))} onMouseOut={() =>  setOfferingImage((prev) => ({...prev, image : './offeringSelector.png'}))} src={offeringImage.image} alt='Offering Selector'/>
+                <img className='size-25' onClick={() =>(
+                        unlockState(selectedState),
+                        setSelectedState('offeringImage'),
+                        setOfferingImage(prev=>
+                            ({...prev, lockedIn: true, image : './offeringSelectorHover.png'})
+                        ))}
+                     onMouseOver={() => !offeringImage.lockedIn && setOfferingImage((prev) => ({...prev, image : './offeringSelectorHover.png'}))} onMouseOut={() => !offeringImage.lockedIn &&  setOfferingImage((prev) => ({...prev, image : './offeringSelector.png'}))} src={offeringImage.image} alt='Offering Selector'/>
             </div>
 
             <div className='border-8 bg-gray-400 border-gray-700 flex justify-center items-center gap-16 p-8 col-start-2 row-start-1 row-end-4'></div>
@@ -109,24 +176,27 @@ const MakeYourBuildCard = ({role}) => {
             <div className='border-8 bg-gray-400 border-gray-700 flex justify-center items-center gap-16 p-8 col-start-1 col-end-2'>
                 {perksImages.map((perk, index) => (
                             <img  key={index} className='size-20 rotate-45'
+                                  onClick={() =>(
+                                      unlockState(selectedState),
+                                          setSelectedState('perksImages'),
+                                          setPerksImages((prev)=>
+                                              prev.map((element, i) =>
+                                                  index === i ? { ...element, image : './perkSelectorHover.png', lockedIn: true} : element))
+                                  )}
                                  onMouseOver={() =>
                                      setPerksImages(prev =>
                                          prev.map((element, i) =>
-                                             i===index ? { ...element, image : './perkSelectorHover.png'} : element))
+                                             i===index && !element.lockedIn ? { ...element, image : './perkSelectorHover.png'} : element))
                                  }
                                  onMouseOut={() =>
                                      setPerksImages((prev) =>
                                          prev.map((element, i) =>
-                                             i===index ? { ...element, image : './perkSelector.png'} : element))
+                                             i===index && !element.lockedIn ? { ...element, image : './perkSelector.png'} : element))
                                  }
-                                 src={perk.image} alt='AddOn Slot'/>
+                                 src={perk.image} alt='Perk Slot'/>
                     )
                 )
                 }
-                {/*<img className='size-20 rotate-45' onMouseOver={() => setPerk1Image('./perkSelectorHover.png')} onMouseOut={() => setPerk1Image('./perkSelector.png')} src={perk1Image} alt='Perk Selector'/>*/}
-                {/*<img className='size-20 rotate-45' onMouseOver={() => setPerk2Image('./perkSelectorHover.png')} onMouseOut={() => setPerk2Image('./perkSelector.png')} src={perk2Image} alt='Perk Selector'/>*/}
-                {/*<img className='size-20 rotate-45' onMouseOver={() => setPerk3Image('./perkSelectorHover.png')} onMouseOut={() => setPerk3Image('./perkSelector.png')} src={perk3Image} alt='Perk Selector'/>*/}
-                {/*<img className='size-20 rotate-45' onMouseOver={() => setPerk4Image('./perkSelectorHover.png')} onMouseOut={() => setPerk4Image('./perkSelector.png')} src={perk4Image} alt='Perk Selector'/>*/}
             </div>
 
             <div className='border-8 bg-gray-400 border-gray-700 min-h-[450px] flex flex-col  p-4 col-start-1 gap-2'>
@@ -145,13 +215,17 @@ const MakeYourBuildCard = ({role}) => {
                                         <img className='size-25' src={'./dbdRandom.png'} />
                                     </li>
                                 ) :
-                                console.log('ToDo') :
-                                console.log('Not Ready')
+                                    displayArray['array'].map((element, i) =>
+                                        <li key={i} className={`grid grid-cols-[1fr_1fr_1fr_1fr_1fr]] ${i%5===4 ? 'ml-8' : 'ml-8' }`}>
+                                            <img className='size-25' src={'./dbdRandom.png'} />
+                                        </li>
+                                    ) :
+                                <p/>
                             }
                         </ul>
                         <img className='size-10 rotate-180' onClick={() => {countPage>page && setPage((prev) => prev+1) }} onMouseOver={() => setRightArrow('./arrowHover.png')} onMouseOut={() => setRightArrow('./arrow.png')} src={rightArrow} alt='Left Arrow'/>
                     </div>
-                    <p>Ceva</p>
+                    {isDoneCaching && <p>{page}/{countPage}</p>}
                 </div>
             </div>
 

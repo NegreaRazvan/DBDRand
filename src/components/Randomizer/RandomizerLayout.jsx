@@ -39,6 +39,9 @@ const RandomizerLayout = () => {
     const [retry, setRetry] = useState(false)
 
     const fetchWithCache = async (url) => {
+        // if(localStorage.getItem('UrlCache') === undefined) {
+        //     localStorage.setItem('UrlCache', {})
+        // }
         // const cache = localStorage.getItem('UrlCache')
 
         // if the response is in cache -> return it
