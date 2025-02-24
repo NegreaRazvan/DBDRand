@@ -11,6 +11,8 @@
     --color-background: #808080;
 
     --background-image-random-hand: url("/random.png");
+
+    --background-image-portrait: url("/CharPortrait_bg.png");
 }
 
 @layer base{

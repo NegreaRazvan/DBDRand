@@ -6,7 +6,7 @@ import CharacterInformationCard from "./CharacterInformationCard.jsx";
 import PerkInformationCard from "./PerkInformationCard.jsx";
 import ItemInformationCard from "./ItemInformationCard.jsx";
 
-const cache = {};
+const cache={}
 
 const API_OPTIONS = {
     method: 'GET',
@@ -38,7 +38,13 @@ const RandomizerLayout = () => {
 
     const [retry, setRetry] = useState(false)
 
+
     const fetchWithCache = async (url) => {
+        // if(localStorage.getItem('UrlCache') === undefined) {
+        //     localStorage.setItem('UrlCache', {})
+        // }
+        // const cache = localStorage.getItem('UrlCache')
+
         // if the response is in cache -> return it
         if (cache[url])
             return cache[url];
@@ -55,8 +61,10 @@ const RandomizerLayout = () => {
         }
 
         // save the response in the cache
-        if(!url.includes("random"))
+        if(!url.includes("random")) {
             cache[url] = data;
+            // localStorage.setItem('UrlCache', cache);
+        }
         return data;
     };
 
@@ -97,13 +105,14 @@ const RandomizerLayout = () => {
             itemSearched = itemValue[Math.floor(Math.random() * itemValue.length)]
 
             /// if the item is a killer specific item / event specific item, we don't want it
-            while(itemSearched[1].item_type === null) {
+            while(itemSearched[1].item_type === null || itemSearched[1].rarity ==='specialevent' || itemSearched[1].rarity ==='none') {
                 itemSearched = itemValue[Math.floor(Math.random() * itemValue.length)]
             }
 
         }
 
         /// we will have a single map Object (key, element)
+        console.log(itemSearched);
         setRandomItem(itemSearched);
         return itemSearched;
     }
@@ -142,7 +151,10 @@ const RandomizerLayout = () => {
         const data = await fetchWithCache( `${URL_OFFERINGS}?role=${role}`)
 
         const offerings = Object.values(data)
-        const randomOffering = offerings[Math.floor(Math.random() * offerings.length)]
+        let randomOffering = offerings[Math.floor(Math.random() * offerings.length)]
+
+        while(randomOffering.retired === 1)
+            randomOffering = offerings[Math.floor(Math.random() * offerings.length)]
 
         setOffering(randomOffering);
     }
@@ -198,6 +210,7 @@ const RandomizerLayout = () => {
                     {randomPerks.map(perk => (
                         <PerkInformationCard key={perk.name} perk={perk}/>
                     ))}
+                    {console.log(randomCharacter)}
                 </>
                 :
                 <div className='flex justify-center'> <Spinner/></div>

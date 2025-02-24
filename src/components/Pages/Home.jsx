@@ -3,6 +3,7 @@ import RandomizeBuildHomeSection from "../HomeSections/RandomizeBuildHomeSection
 import MakeYourBuildHomeSection from "../HomeSections/MakeYourBuildHomeSection.jsx";
 import CommunityBuildsHomeSection from "../HomeSections/CommunityBuildsHomeSection.jsx";
 
+
 const Home = () => {
     const [isVisible, setIsVisible] = useState({});
     const sectionRef=useRef([]);
@@ -16,7 +17,6 @@ const Home = () => {
 
     useEffect(() => {
         const observer= new IntersectionObserver((entries) => {
-            console.log(entries);
             entries.forEach(entry => {
                 const id= entry.target.id;
                 setIsVisible((prev) => ({
