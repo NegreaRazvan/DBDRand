@@ -21,7 +21,12 @@ const PerkInformationCard = ({perk}) => {
     return (
         <div className='bg-gray-400 border-8 border-gray-700 items-center flex min-h-[200px] tracking-tight leading-[28.8px]'>
             <div className='flex flex-col justify-center items-center h-[200px] w-[250px]'>
-                <img className='size-30' src={'./dbdRandom.png'} alt={perk.name}/>
+                <div>
+                    <div className="relative z-0">
+                        <img src={'./perkPortrait.png'} className="absolute z-0 size-30" />
+                    </div>
+                    <img className='relative z-10 size-30' src={`/perksImages/ICONPERKS_${perk.name.toUpperCase().replace(/\s/g, "").replace(/&/g, "AND").replace(/’/g, "").replace(/:/g, "").replace(/'/g, "").replace(/‘/g, "")}.PNG`} alt={perk.name}/>
+                </div>
                 <p className=''>{perk.name}</p>
             </div>
             <p className='items-center w-[500px]' dangerouslySetInnerHTML={{ __html: description }}></p>

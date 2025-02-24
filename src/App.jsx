@@ -16,7 +16,6 @@ const App = () => {
             {path : "/randomizer", element : <RandomizerLayout/>},
             {path : "/makeyourbuild", element : <MakeYourBuild/>},
             {path : "/communitybuilds", element : <CommunityBuilds/>},
-            // {path : "/adi" , element: <p>adi2</p>}
         ]
     }]);
     return (
