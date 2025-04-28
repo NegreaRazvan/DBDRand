@@ -72,18 +72,22 @@ const RandomizerLayout = () => {
         /// get the random character, depending on the role
         const data = await fetchWithCache( `${URL_RANDOM_CHARACTER}?role=${role}`)
 
-        const character = Object.values(data);
+        const character = Object.entries(data);
 
 
-        setRandomCharacter(character);
+        setRandomCharacter(Object.entries(data));
+
+        console.log(character);
 
         /// get the item type: it's null if it's a survivor, a power if it's a killer
-        const item = character[11];
-
+        const item = character.filter(([key, element]) => (key === "item"))[0][1];
+        //
         let itemSearched;
-
+        //
         const dataItems = await fetchWithCache( `${URL_ITEMS}?role=${role}`)
 
+        console.log(item, role);
+        //
         if( item !== null) {
 
             const itemValue = Object.entries(dataItems);
@@ -101,20 +105,23 @@ const RandomizerLayout = () => {
         } else{
             const itemValue = Object.entries(dataItems);
 
-            /// random item out of the available ones
+
+             /// random item out of the available ones
             itemSearched = itemValue[Math.floor(Math.random() * itemValue.length)]
 
-            /// if the item is a killer specific item / event specific item, we don't want it
-            while(itemSearched[1].item_type === null || itemSearched[1].rarity ==='specialevent' || itemSearched[1].rarity ==='none') {
-                itemSearched = itemValue[Math.floor(Math.random() * itemValue.length)]
-            }
+            console.log(itemSearched)
+
+             /// if the item is a killer specific item / event specific item, we don't want it
+             while(itemSearched[1].item_type === null || itemSearched[1].rarity ==='specialevent' || itemSearched[1].rarity ==='none') {
+                 itemSearched = itemValue[Math.floor(Math.random() * itemValue.length)]
+             }
 
         }
-
-        /// we will have a single map Object (key, element)
-        console.log(itemSearched);
-        setRandomItem(itemSearched);
-        return itemSearched;
+        //
+         /// we will have a single map Object (key, element)
+         console.log(itemSearched);
+         setRandomItem(itemSearched);
+         return itemSearched;
     }
 
     const fetchRandomPerks = async (role) => {
@@ -130,11 +137,11 @@ const RandomizerLayout = () => {
 
             const addOns = Object.values(data);
 
-
             const addOnsForAsset = role === 'survivor' ? Array.from(addOns.filter((element) => element.item_type === item[1].item_type)) :
                 Array.from(addOns.filter((element) => (element.parents[0] === item[0])));
             const indexAddOn1 = Math.floor(Math.random() * addOnsForAsset.length);
             let indexAddOn2 = Math.floor(Math.random() * addOnsForAsset.length);
+
             while (indexAddOn1 === indexAddOn2 && addOnsForAsset.length > 0) {
                 indexAddOn2 = Math.floor(Math.random() * addOnsForAsset.length);
             }
@@ -163,6 +170,7 @@ const RandomizerLayout = () => {
         try{
             setIsDoneRandomizing(false)
             const item = await fetchRandomCharacterAndItem(role);
+            console.log(item);
             if (item) {
                 await fetchRandomAddOns(role, item);
             }
@@ -210,7 +218,6 @@ const RandomizerLayout = () => {
                     {randomPerks.map(perk => (
                         <PerkInformationCard key={perk.name} perk={perk}/>
                     ))}
-                    {console.log(randomCharacter)}
                 </>
                 :
                 <div className='flex justify-center'> <Spinner/></div>

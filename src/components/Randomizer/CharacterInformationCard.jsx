@@ -8,9 +8,9 @@ const CharacterInformationCard = ({character}) => {
                     <div className="relative z-0">
                         <img src={'./CharPortrait_bg.png'} className="absolute z-0 size-30" />
                     </div>
-                    <img className='relative z-10 size-30' src={`./portraits/${character[14].split("/").pop()}`} alt={character.name}/>
+                    <img className='relative z-10 size-30' src={`./portraits/${character.filter(([key, element]) => (key === "image"))[0][1].split("/").pop()}`} alt={character.name}/>
                 </div>
-                <p className=''>{character[3]}</p>
+                <p className=''>{character.filter(([key, element]) => (key === "name"))[0][1]}</p>
             </div>
             <p className='items-center w-[500px]' dangerouslySetInnerHTML={{ __html: character[8] }}></p>
         </div>
