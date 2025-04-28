@@ -46,9 +46,9 @@ const RandomizerCard = ({item , addOns, offering, perks, character }) => {
                     <div className="relative z-0">
                         <img src={'./CharPortrait_bg.png'} className="absolute z-0 size-50" />
                     </div>
-                    <img className='relative z-10 size-50' src={`./portraits/${character[14].split("/").pop()}`} alt={'Character Name'}/>
+                    <img className='relative z-10 size-50' src={`./portraits/${character.filter(([key, element]) => (key === "image"))[0][1].split("/").pop()}`} alt={'Character Name'}/>
                 </div>
-                <h2 className='text-2xl'>{character[3]}</h2>
+                <h2 className='text-2xl'>{character.filter(([key, element]) => (key === "name"))[0][1]}</h2>
             </div>
 
             <div className='p-4 bg-gray-400  justify-evenly border-8 border-gray-700 flex flex-row items-center col-start-1 col-end-3 '>
